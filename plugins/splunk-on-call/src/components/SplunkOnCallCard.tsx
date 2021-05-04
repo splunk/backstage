@@ -43,6 +43,8 @@ import { MissingApiKeyOrApiIdError } from './Errors/MissingApiKeyOrApiIdError';
 import { User } from './types';
 
 export const SPLUNK_ON_CALL_TEAM = 'splunk.com/on-call-team';
+// If team is not specified, rely on routing key array
+export const SPLUNK_ON_CALL_ROUTING_KEY = 'splunk.com/on-call-routing-key';
 
 export const MissingTeamAnnotation = () => (
   <MissingAnnotationEmptyState annotation={SPLUNK_ON_CALL_TEAM} />
@@ -71,6 +73,7 @@ export const SplunkOnCallCard = ({ entity }: Props) => {
   const [showDialog, setShowDialog] = useState<boolean>(false);
   const [refreshIncidents, setRefreshIncidents] = useState<boolean>(false);
   const team = entity.metadata.annotations![SPLUNK_ON_CALL_TEAM];
+  const routingKey = entity.metadata.annotations![SPLUNK_ON_CALL_ROUTING_KEY];
 
   const eventsRestEndpoint =
     config.getOptionalString('splunkOnCall.eventsRestEndpoint') || null;
@@ -114,7 +117,7 @@ export const SplunkOnCallCard = ({ entity }: Props) => {
   }
 
   const Content = () => {
-    if (!team) {
+    if (!team && !routingKey) {
       return <MissingTeamAnnotation />;
     }
 
@@ -124,7 +127,11 @@ export const SplunkOnCallCard = ({ entity }: Props) => {
 
     return (
       <>
-        <Incidents team={team} refreshIncidents={refreshIncidents} />
+        <Incidents
+          team={team}
+          routingKey={routingKey}
+          refreshIncidents={refreshIncidents}
+        />
         {users?.usersHashMap && team && (
           <EscalationPolicy team={team} users={users.usersHashMap} />
         )}

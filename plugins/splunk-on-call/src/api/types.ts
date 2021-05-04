@@ -20,6 +20,7 @@ import {
   OnCall,
   Team,
   User,
+  RoutingKeyInfo,
 } from '../components/types';
 import { DiscoveryApi } from '@backstage/core';
 
@@ -69,6 +70,8 @@ export interface SplunkOnCallApi {
    * Get a list of escalation policies for your organization.
    */
   getEscalationPolicies(): Promise<EscalationPolicyInfo[]>;
+
+  getRoutingKeys(): Promise<RoutingKeyInfo[]>;
 }
 
 export type EscalationPolicyResponse = {
@@ -86,6 +89,10 @@ export type IncidentsResponse = {
 
 export type OnCallsResponse = {
   teamsOnCall: OnCall[];
+};
+
+export type RoutingKeysResponse = {
+  routingKeys: RoutingKeyInfo[];
 };
 
 export type ClientApiConfig = {

@@ -21,6 +21,7 @@ import {
   User,
   EscalationPolicyInfo,
   Team,
+  RoutingKeyInfo,
 } from '../components/types';
 import {
   SplunkOnCallApi,
@@ -31,6 +32,7 @@ import {
   RequestOptions,
   ListUserResponse,
   EscalationPolicyResponse,
+  RoutingKeysResponse,
 } from './types';
 
 export class UnauthorizedError extends Error {}
@@ -95,6 +97,15 @@ export class SplunkOnCallClient implements SplunkOnCallApi {
     const { policies } = await this.getByUrl<EscalationPolicyResponse>(url);
 
     return policies;
+  }
+
+  async getRoutingKeys(): Promise<RoutingKeyInfo[]> {
+    const url = `${await this.config.discoveryApi.getBaseUrl(
+      'proxy',
+    )}/splunk-on-call/v1/org/routing-keys`;
+    const { routingKeys } = await this.getByUrl<RoutingKeysResponse>(url);
+
+    return routingKeys;
   }
 
   async incidentAction({

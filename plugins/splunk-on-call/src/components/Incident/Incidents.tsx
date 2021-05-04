@@ -28,6 +28,7 @@ import { useAsyncFn } from 'react-use';
 import { splunkOnCallApiRef } from '../../api';
 import { useApi, Progress } from '@backstage/core';
 import { Alert } from '@material-ui/lab';
+import { EscalationPolicyInfo } from '../types';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -47,9 +48,10 @@ const useStyles = makeStyles((theme: Theme) =>
 type Props = {
   refreshIncidents: boolean;
   team: string;
+  routingKey?: string;
 };
 
-export const Incidents = ({ refreshIncidents, team }: Props) => {
+export const Incidents = ({ refreshIncidents, team, routingKey }: Props) => {
   const classes = useStyles();
   const api = useApi(splunkOnCallApiRef);
 
@@ -61,12 +63,25 @@ export const Incidents = ({ refreshIncidents, team }: Props) => {
       await new Promise(resolve => setTimeout(resolve, 2000));
       const allIncidents = await api.getIncidents();
       const teams = await api.getTeams();
+      const routingKeys = await api.getRoutingKeys();
       const teamSlug = teams.find(teamValue => teamValue.name === team)?.slug;
-      const filteredIncidents = teamSlug
-        ? allIncidents.filter(incident =>
-            incident.pagedTeams?.includes(teamSlug),
-          )
-        : [];
+      const policySlugs = routingKeys
+        .find(routingValue => routingValue.routingKey === routingKey)
+        ?.targets?.map(target => target.policySlug);
+      const filterRoutingKey = (pagedPolicies: EscalationPolicyInfo[]) => {
+        return !!pagedPolicies.find(({ policy }) => {
+          return policySlugs?.includes(policy.slug);
+        });
+      };
+      const filteredIncidents =
+        teamSlug || policySlugs
+          ? allIncidents.filter(
+              incident =>
+                (teamSlug && incident.pagedTeams?.includes(teamSlug)) ||
+                (incident.pagedPolicies &&
+                  filterRoutingKey(incident.pagedPolicies)),
+            )
+          : [];
       return filteredIncidents;
     },
   );
