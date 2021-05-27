@@ -24,12 +24,16 @@ type Props = {
 const CatalogLayout = ({ children }: Props) => {
   const orgName =
     useApi(configApiRef).getOptionalString('organization.name') ?? 'Backstage';
+  const orgTitle = useApi(configApiRef).getOptionalString('organization.title');
+  const orgSubtitle = useApi(configApiRef).getOptionalString(
+    'organization.subtitle',
+  );
 
   return (
     <Page themeId="home">
       <Header
-        title={`${orgName} Catalog`}
-        subtitle={`Catalog of software components at ${orgName}`}
+        title={orgTitle || `${orgName} Catalog`}
+        subtitle={orgSubtitle || `Catalog of software components at ${orgName}`}
         pageTitleOverride="Home"
       />
       {children}

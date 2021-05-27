@@ -87,6 +87,10 @@ export interface Config {
      * @visibility frontend
      */
     name?: string;
+    /** @visibility frontend */
+    title?: string;
+    /** @visibility frontend */
+    subtitle?: string;
   };
 
   homepage?: {
