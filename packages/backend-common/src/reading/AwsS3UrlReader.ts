@@ -21,18 +21,30 @@ import {
   UrlReader,
 } from './types';
 
+import {
+  // AwsS3IntegrationConfig,
+  readAwsS3IntegrationConfig,
+} from '@backstage/integration';
+
 export class AwsS3UrlReader implements UrlReader {
   static factory: ReaderFactory = ({ config, logger }) => {
     if (!config.has('integrations.awsS3')) {
       return [];
     }
+    const awsS3Config = readAwsS3IntegrationConfig(
+      config.getConfig('integrations.awsS3'),
+    );
+    // this is where gcsUrlReader declares storage: Storage
+    if (!awsS3Config.accessKeyId || !awsS3Config.secretAccessKey) {
+      logger.info(
+        'awsS3 credentials not found in config. Using default credentials provider.',
+      );
+    }
     return [];
-    // const awsS3Config =
   };
 
-  async read(url: string): Promise<Buffer> {
-    const test = new Buffer('hi');
-    return test;
+  async read(): Promise<Buffer> {
+    throw new Error('GcsUrlReader does not implement readTree');
   }
   async readTree(): Promise<ReadTreeResponse> {
     throw new Error('GcsUrlReader does not implement readTree');
