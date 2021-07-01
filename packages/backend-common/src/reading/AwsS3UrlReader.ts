@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import { S3 } from '@aws-sdk/client-s3';
 import {
   ReaderFactory,
   ReadTreeResponse,
@@ -22,7 +22,7 @@ import {
 } from './types';
 
 import {
-  // AwsS3IntegrationConfig,
+  AwsS3IntegrationConfig,
   readAwsS3IntegrationConfig,
 } from '@backstage/integration';
 
@@ -34,15 +34,35 @@ export class AwsS3UrlReader implements UrlReader {
     const awsS3Config = readAwsS3IntegrationConfig(
       config.getConfig('integrations.awsS3'),
     );
-    // this is where gcsUrlReader declares storage: Storage
+    let storage: S3;
     if (!awsS3Config.accessKeyId || !awsS3Config.secretAccessKey) {
       logger.info(
         'awsS3 credentials not found in config. Using default credentials provider.',
       );
+      storage = new S3({
+        apiVersion: '2006-03-01',
+        region: 'us-west-1',
+      });
+    } else {
+      storage = new S3({
+        apiVersion: '2006-03-01',
+        region: 'us-west-1',
+        credentials: {
+          accessKeyId: awsS3Config.accessKeyId,
+          secretAccessKey: awsS3Config.secretAccessKey,
+        },
+      });
     }
-    return [];
+    const reader = new AwsS3UrlReader(awsS3Config, storage);
+    const predicate = (url: URL) => url.host === 'storage.s3.aws.com';
+
+    return [{ reader, predicate }];
   };
 
+  constructor(
+    private readonly integration: AwsS3IntegrationConfig,
+    private readonly storage: S3,
+  ) {}
   async read(): Promise<Buffer> {
     throw new Error('GcsUrlReader does not implement readTree');
   }

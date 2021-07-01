@@ -312,17 +312,14 @@ export type GoogleGcsIntegrationConfig = {
   privateKey?: string;
 };
 
-<<<<<<< HEAD
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (ae-missing-release-tag) "readAzureIntegrationConfig" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
-=======
 export type AwsS3IntegrationConfig = {
     accessKeyId?: string;
     secretAccessKey?: string;
 }
 
->>>>>>> WIP: Implementing ability for AWS S3 reader to read from config files.
 // @public
 export function readAzureIntegrationConfig(
   config: Config,
@@ -392,15 +389,12 @@ export function readGoogleGcsIntegrationConfig(
   config: Config,
 ): GoogleGcsIntegrationConfig;
 
-<<<<<<< HEAD
 // Warning: (ae-missing-release-tag) "ScmIntegration" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
-=======
 // @public 
 export function readAwsS3IntegrationConfig
 (config: Config): AwsS3IntegrationConfig;
 
->>>>>>> WIP: Implementing ability for AWS S3 reader to read from config files.
 // @public
 export interface ScmIntegration {
   // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
