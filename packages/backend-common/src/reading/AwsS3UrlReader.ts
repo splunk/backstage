@@ -13,18 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { S3 } from '@aws-sdk/client-s3';
+
+import aws, { Credentials, S3 } from 'aws-sdk';
 import {
   ReaderFactory,
   ReadTreeResponse,
   SearchResponse,
   UrlReader,
 } from './types';
-
+import getRawBody from 'raw-body';
 import {
   AwsS3IntegrationConfig,
   readAwsS3IntegrationConfig,
 } from '@backstage/integration';
+
+const AMAZON_AWS_HOST = '.amazonaws.com';
+
+const parseRegion = (
+  url: string,
+): { key: string; bucket: string; region: string } => {
+  const { host, pathname } = new URL(url);
+
+  // do error checking for valid URL
+
+  const key = pathname.substr(1);
+  const [bucket, , region, ,] = host.split('.');
+
+  console.log(key, bucket, region);
+  return {
+    key: key,
+    bucket: bucket,
+    region: region,
+  };
+};
 
 export class AwsS3UrlReader implements UrlReader {
   static factory: ReaderFactory = ({ config, logger }) => {
@@ -34,43 +55,54 @@ export class AwsS3UrlReader implements UrlReader {
     const awsS3Config = readAwsS3IntegrationConfig(
       config.getConfig('integrations.awsS3'),
     );
-    let storage: S3;
+    let s3: S3;
     if (!awsS3Config.accessKeyId || !awsS3Config.secretAccessKey) {
       logger.info(
         'awsS3 credentials not found in config. Using default credentials provider.',
       );
-      storage = new S3({
-        apiVersion: '2006-03-01',
-        region: 'us-west-1',
-      });
+      s3 = new S3({});
     } else {
-      storage = new S3({
+      const creds = new Credentials({
+        accessKeyId: awsS3Config.accessKeyId,
+        secretAccessKey: awsS3Config.secretAccessKey,
+      });
+      s3 = new S3({
         apiVersion: '2006-03-01',
-        region: 'us-west-1',
-        credentials: {
-          accessKeyId: awsS3Config.accessKeyId,
-          secretAccessKey: awsS3Config.secretAccessKey,
-        },
+        credentials: creds,
       });
     }
-    const reader = new AwsS3UrlReader(awsS3Config, storage);
-    const predicate = (url: URL) => url.host === 'storage.s3.aws.com';
-
+    const reader = new AwsS3UrlReader(awsS3Config, s3);
+    console.log(reader.integration.toString() + reader.s3.toString()); // just to bypass compile error for now
+    const predicate = (url: URL) => url.host.endsWith(AMAZON_AWS_HOST);
     return [{ reader, predicate }];
   };
 
   constructor(
     private readonly integration: AwsS3IntegrationConfig,
-    private readonly storage: S3,
+    private readonly s3: S3,
   ) {}
-  async read(): Promise<Buffer> {
-    throw new Error('GcsUrlReader does not implement readTree');
+
+  async read(url: string): Promise<Buffer> {
+    try {
+      const { key, bucket, region } = parseRegion(url);
+      console.log(key, bucket, region);
+      aws.config.update({ region: region });
+
+      const params = {
+        Bucket: bucket,
+        Key: key,
+      };
+      return await getRawBody(this.s3.getObject(params).createReadStream());
+    } catch (e) {
+      throw new Error(`Could not retrieve file from S3: ${e.message}`);
+    }
   }
+
   async readTree(): Promise<ReadTreeResponse> {
-    throw new Error('GcsUrlReader does not implement readTree');
+    throw new Error('AwsS3Reader does not implement readTree');
   }
 
   async search(): Promise<SearchResponse> {
-    throw new Error('GcsUrlReader does not implement search');
+    throw new Error('AwsS3Reader does not implement search');
   }
 }
