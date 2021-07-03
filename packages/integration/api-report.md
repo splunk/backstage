@@ -6,8 +6,17 @@
 import { Config } from '@backstage/config';
 import { RestEndpointMethodTypes } from '@octokit/rest';
 
+<<<<<<< HEAD
 // Warning: (ae-missing-release-tag) "AzureIntegration" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
+=======
+// @public
+export type AwsS3IntegrationConfig = {
+    accessKeyId?: string;
+    secretAccessKey?: string;
+};
+
+>>>>>>> fixed issues in api-reports with yarn build:api-reports
 // @public (undocumented)
 export class AzureIntegration implements ScmIntegration {
   constructor(integrationConfig: AzureIntegrationConfig);
@@ -312,6 +321,7 @@ export type GoogleGcsIntegrationConfig = {
   privateKey?: string;
 };
 
+<<<<<<< HEAD
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (ae-missing-release-tag) "readAzureIntegrationConfig" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -319,6 +329,10 @@ export type AwsS3IntegrationConfig = {
     accessKeyId?: string;
     secretAccessKey?: string;
 }
+=======
+// @public
+export function readAwsS3IntegrationConfig(config: Config): AwsS3IntegrationConfig;
+>>>>>>> fixed issues in api-reports with yarn build:api-reports
 
 // @public
 export function readAzureIntegrationConfig(
@@ -389,12 +403,15 @@ export function readGoogleGcsIntegrationConfig(
   config: Config,
 ): GoogleGcsIntegrationConfig;
 
+<<<<<<< HEAD
 // Warning: (ae-missing-release-tag) "ScmIntegration" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public 
 export function readAwsS3IntegrationConfig
 (config: Config): AwsS3IntegrationConfig;
 
+=======
+>>>>>>> fixed issues in api-reports with yarn build:api-reports
 // @public
 export interface ScmIntegration {
   // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
