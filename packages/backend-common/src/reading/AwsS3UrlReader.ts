@@ -20,6 +20,7 @@ import {
   ReadTreeResponse,
   SearchResponse,
   UrlReader,
+  ReadTreeResponseFactory,
 } from './types';
 import getRawBody from 'raw-body';
 import {
@@ -29,12 +30,14 @@ import {
 
 const AMAZON_AWS_HOST = '.amazonaws.com';
 
-const parseRegion = (
+const parseURL = (
   url: string,
 ): { key: string; bucket: string; region: string } => {
   const { host, pathname } = new URL(url);
 
-  // do error checking for valid URL
+  if (!host.endsWith(AMAZON_AWS_HOST)) {
+    throw new Error(`not a valid AWS URL: ${url}`);
+  }
 
   const key = pathname.substr(1);
   const [bucket, , region, ,] = host.split('.');
@@ -48,7 +51,7 @@ const parseRegion = (
 };
 
 export class AwsS3UrlReader implements UrlReader {
-  static factory: ReaderFactory = ({ config, logger }) => {
+  static factory: ReaderFactory = ({ config, logger, treeResponseFactory }) => {
     if (!config.has('integrations.awsS3')) {
       return [];
     }
@@ -71,20 +74,25 @@ export class AwsS3UrlReader implements UrlReader {
         credentials: creds,
       });
     }
-    const reader = new AwsS3UrlReader(awsS3Config, s3);
-    console.log(reader.integration.toString() + reader.s3.toString()); // just to bypass compile error for now
+    const reader = new AwsS3UrlReader(awsS3Config, {
+      treeResponseFactory,
+      s3,
+    });
     const predicate = (url: URL) => url.host.endsWith(AMAZON_AWS_HOST);
     return [{ reader, predicate }];
   };
 
   constructor(
     private readonly integration: AwsS3IntegrationConfig,
-    private readonly s3: S3,
+    private readonly deps: {
+      treeResponseFactory: ReadTreeResponseFactory;
+      s3: S3;
+    },
   ) {}
 
   async read(url: string): Promise<Buffer> {
     try {
-      const { key, bucket, region } = parseRegion(url);
+      const { key, bucket, region } = parseURL(url);
       console.log(key, bucket, region);
       aws.config.update({ region: region });
 
@@ -92,17 +100,38 @@ export class AwsS3UrlReader implements UrlReader {
         Bucket: bucket,
         Key: key,
       };
-      return await getRawBody(this.s3.getObject(params).createReadStream());
+      return await getRawBody(
+        this.deps.s3.getObject(params).createReadStream(),
+      );
     } catch (e) {
       throw new Error(`Could not retrieve file from S3: ${e.message}`);
     }
   }
 
-  async readTree(): Promise<ReadTreeResponse> {
-    throw new Error('AwsS3Reader does not implement readTree');
+  async readTree(url: string): Promise<ReadTreeResponse> {
+    try {
+      const { key, bucket, region } = parseURL(url);
+      console.log(key, bucket, region);
+      aws.config.update({ region: region });
+
+      const params = {
+        Bucket: bucket,
+      };
+      const data = await this.deps.s3.listObjects(params).promise();
+      console.log(data);
+    } catch (e) {
+      throw new Error(`Could not retrieve file from S3: ${e.message}`);
+    }
+
+    throw new Error('AwsS3Reader does not implement search');
   }
 
   async search(): Promise<SearchResponse> {
     throw new Error('AwsS3Reader does not implement search');
+  }
+
+  toString() {
+    const key = this.integration.secretAccessKey;
+    return `awsS3{host=${AMAZON_AWS_HOST},authed=${Boolean(key)}}`;
   }
 }
