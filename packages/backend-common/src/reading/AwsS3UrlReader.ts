@@ -33,18 +33,23 @@ const AMAZON_AWS_HOST = '.amazonaws.com';
 const parseURL = (
   url: string,
 ): { key: string; bucket: string; region: string } => {
-  const { host, pathname } = new URL(url);
+  let { host, pathname } = new URL(url);
 
-  if (!host.endsWith(AMAZON_AWS_HOST)) {
-    throw new Error(`not a valid AWS URL: ${url}`);
+  pathname = pathname.substr(1);
+
+  const validHost = new RegExp(
+    /^[a-z\d][a-z\d\.-]{1,61}[a-z\d]\.s3\.[a-z\d-]+\.amazonaws.com$/,
+  );
+  if (!validHost.test(host)) {
+    throw new Error(`not a valid AWS S3 URL: ${url}`);
   }
 
-  const key = pathname.substr(1);
-  const [bucket, , region, ,] = host.split('.');
+  const [bucket] = host.split(/\.s3\.[a-z\d-]+\.amazonaws.com/);
+  host = host.substring(bucket.length);
+  const [, , region, ,] = host.split('.');
 
-  console.log(key, bucket, region);
   return {
-    key: key,
+    key: pathname,
     bucket: bucket,
     region: region,
   };
@@ -93,7 +98,6 @@ export class AwsS3UrlReader implements UrlReader {
   async read(url: string): Promise<Buffer> {
     try {
       const { key, bucket, region } = parseURL(url);
-      console.log(key, bucket, region);
       aws.config.update({ region: region });
 
       const params = {
@@ -111,7 +115,6 @@ export class AwsS3UrlReader implements UrlReader {
   async readTree(url: string): Promise<ReadTreeResponse> {
     try {
       const { key, bucket, region } = parseURL(url);
-      console.log(key, bucket, region);
       aws.config.update({ region: region });
 
       const params = {
@@ -123,7 +126,7 @@ export class AwsS3UrlReader implements UrlReader {
       throw new Error(`Could not retrieve file from S3: ${e.message}`);
     }
 
-    throw new Error('AwsS3Reader does not implement search');
+    throw new Error('AwsS3Reader does not implement readTree');
   }
 
   async search(): Promise<SearchResponse> {
