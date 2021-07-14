@@ -116,12 +116,27 @@ export class AwsS3UrlReader implements UrlReader {
     try {
       const { key, bucket, region } = parseURL(url);
       aws.config.update({ region: region });
-
+      console.log(key);
       const params = {
         Bucket: bucket,
       };
-      const data = await this.deps.s3.listObjects(params).promise();
-      console.log(data);
+      const { Contents } = await this.deps.s3.listObjectsV2(params).promise();
+
+      // filter out folders
+
+      const responses = await Promise.all(
+        (Contents || []).map(({ Key }) =>
+          this.deps.s3
+            .getObject({
+              Bucket: bucket,
+              Key: String(Key),
+            })
+            .createReadStream(),
+        ),
+      );
+
+      const buffer = await getRawBody(responses[1]);
+      console.log(buffer.toString());
     } catch (e) {
       throw new Error(`Could not retrieve file from S3: ${e.message}`);
     }
