@@ -27,7 +27,8 @@ import {
   AwsS3IntegrationConfig,
   readAwsS3IntegrationConfig,
 } from '@backstage/integration';
-import { Readable } from 'stream';
+import { Readable, Stream } from 'stream';
+import Archiver from 'archiver';
 
 const AMAZON_AWS_HOST = '.amazonaws.com';
 
@@ -136,11 +137,26 @@ export class AwsS3UrlReader implements UrlReader {
         ),
       );
 
+      const archive = Archiver('zip', {
+        zlib: { level: 0 },
+      });
+      const singleStream = new Stream.PassThrough();
+
+      archive.pipe(singleStream);
+
+      responses.forEach(response => {
+        archive.append(response, { name: 'testing' });
+      });
+
+      archive.finalize();
+
+      console.log(archive);
+
       // const buffer = await getRawBody(responses[1]);
       // console.log(buffer.toString());
 
-      return await this.deps.treeResponseFactory.fromTarArchive({
-        stream: (responses as unknown) as Readable,
+      return await this.deps.treeResponseFactory.fromZipArchive({
+        stream: (archive as unknown) as Readable,
         etag: '',
       });
     } catch (e) {
