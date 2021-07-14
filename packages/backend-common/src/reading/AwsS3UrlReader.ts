@@ -27,6 +27,7 @@ import {
   AwsS3IntegrationConfig,
   readAwsS3IntegrationConfig,
 } from '@backstage/integration';
+import { Readable } from 'stream';
 
 const AMAZON_AWS_HOST = '.amazonaws.com';
 
@@ -135,13 +136,16 @@ export class AwsS3UrlReader implements UrlReader {
         ),
       );
 
-      const buffer = await getRawBody(responses[1]);
-      console.log(buffer.toString());
+      // const buffer = await getRawBody(responses[1]);
+      // console.log(buffer.toString());
+
+      return await this.deps.treeResponseFactory.fromTarArchive({
+        stream: (responses as unknown) as Readable,
+        etag: '',
+      });
     } catch (e) {
       throw new Error(`Could not retrieve file from S3: ${e.message}`);
     }
-
-    throw new Error('AwsS3Reader does not implement readTree');
   }
 
   async search(): Promise<SearchResponse> {
