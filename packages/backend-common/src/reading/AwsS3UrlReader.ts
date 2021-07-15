@@ -34,7 +34,7 @@ const AMAZON_AWS_HOST = '.amazonaws.com';
 
 const parseURL = (
   url: string,
-): { key: string; bucket: string; region: string } => {
+): { path: string; bucket: string; region: string } => {
   let { host, pathname } = new URL(url);
 
   pathname = pathname.substr(1);
@@ -51,7 +51,7 @@ const parseURL = (
   const [, , region, ,] = host.split('.');
 
   return {
-    key: pathname,
+    path: pathname,
     bucket: bucket,
     region: region,
   };
@@ -99,12 +99,12 @@ export class AwsS3UrlReader implements UrlReader {
 
   async read(url: string): Promise<Buffer> {
     try {
-      const { key, bucket, region } = parseURL(url);
+      const { path, bucket, region } = parseURL(url);
       aws.config.update({ region: region });
 
       const params = {
         Bucket: bucket,
-        Key: key,
+        Key: path,
       };
       return await getRawBody(
         this.deps.s3.getObject(params).createReadStream(),
@@ -116,15 +116,13 @@ export class AwsS3UrlReader implements UrlReader {
 
   async readTree(url: string): Promise<ReadTreeResponse> {
     try {
-      const { key, bucket, region } = parseURL(url);
+      const { path, bucket, region } = parseURL(url);
       aws.config.update({ region: region });
-      console.log(key);
       const params = {
         Bucket: bucket,
+        Prefix: path,
       };
       const { Contents } = await this.deps.s3.listObjectsV2(params).promise();
-
-      // filter out folders
 
       const responses = await Promise.all(
         (Contents || []).map(({ Key }) =>
@@ -144,16 +142,15 @@ export class AwsS3UrlReader implements UrlReader {
 
       archive.pipe(singleStream);
 
-      responses.forEach(response => {
-        archive.append(response, { name: 'testing' });
-      });
+      let key;
+      for (let i = 0; i < responses.length; i++) {
+        if (Contents) {
+          key = Contents[i].Key;
+        }
+        archive.append(responses[i], { name: String(key) });
+      }
 
       archive.finalize();
-
-      console.log(archive);
-
-      // const buffer = await getRawBody(responses[1]);
-      // console.log(buffer.toString());
 
       return await this.deps.treeResponseFactory.fromZipArchive({
         stream: (archive as unknown) as Readable,
@@ -169,7 +166,7 @@ export class AwsS3UrlReader implements UrlReader {
   }
 
   toString() {
-    const key = this.integration.secretAccessKey;
-    return `awsS3{host=${AMAZON_AWS_HOST},authed=${Boolean(key)}}`;
+    const secretAccessKey = this.integration.secretAccessKey;
+    return `awsS3{host=${AMAZON_AWS_HOST},authed=${Boolean(secretAccessKey)}}`;
   }
 }
