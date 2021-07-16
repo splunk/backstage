@@ -118,44 +118,75 @@ export class AwsS3UrlReader implements UrlReader {
     try {
       const { path, bucket, region } = parseURL(url);
       aws.config.update({ region: region });
-      const params = {
-        Bucket: bucket,
-        Prefix: path,
-      };
-      const { Contents } = await this.deps.s3.listObjectsV2(params).promise();
 
-      const responses = await Promise.all(
-        (Contents || []).map(({ Key }) =>
-          this.deps.s3
-            .getObject({
-              Bucket: bucket,
-              Key: String(Key),
-            })
-            .createReadStream(),
-        ),
-      );
+      let moreKeys = true;
+      let allObjects: Readable[] = [];
+      let nextStartKey = '';
 
-      const archive = Archiver('zip', {
-        zlib: { level: 0 },
-      });
-      const singleStream = new Stream.PassThrough();
-
-      archive.pipe(singleStream);
-
-      let key;
-      for (let i = 0; i < responses.length; i++) {
-        if (Contents) {
-          key = Contents[i].Key;
+      while (moreKeys) {
+        let params;
+        if (nextStartKey === '') {
+          params = { Bucket: bucket, Prefix: path };
+        } else {
+          params = {
+            Bucket: bucket,
+            Prefix: path,
+            ContinuationToken: nextStartKey,
+          };
         }
-        archive.append(responses[i], { name: String(key) });
+
+        const {
+          Contents,
+          IsTruncated,
+          NextContinuationToken,
+        } = await this.deps.s3.listObjectsV2(params).promise();
+
+        const responses = await Promise.all(
+          (Contents || []).map(({ Key }) =>
+            this.deps.s3
+              .getObject({
+                Bucket: bucket,
+                Key: String(Key),
+              })
+              .createReadStream(),
+          ),
+        );
+
+        if (IsTruncated) {
+          nextStartKey = String(NextContinuationToken);
+        } else {
+          nextStartKey = '';
+          moreKeys = false;
+        }
+
+        allObjects = allObjects.concat(responses);
       }
 
-      archive.finalize();
+      console.log(allObjects);
 
-      return await this.deps.treeResponseFactory.fromZipArchive({
-        stream: (archive as unknown) as Readable,
-        etag: '',
-      });
+      // const archive = Archiver('zip', {
+      //   zlib: { level: 0 },
+      // });
+      // const singleStream = new Stream.PassThrough();
+
+      // archive.pipe(singleStream);
+
+      // let key;
+      // for (let i = 0; i < responses.length; i++) {
+      //   if (Contents) {
+      //     key = Contents[i].Key;
+      //   }
+      //   archive.append(responses[i], { name: String(key) });
+      // }
+
+      // archive.finalize();
+
+      // return await this.deps.treeResponseFactory.fromZipArchive({
+      //   stream: (archive as unknown) as Readable,
+      //   etag: '',
+      // });
+
+      throw new Error('AwsS3Reader does not implement readTree');
     } catch (e) {
       throw new Error(`Could not retrieve file from S3: ${e.message}`);
     }

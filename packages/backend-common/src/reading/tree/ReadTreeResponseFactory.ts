@@ -53,4 +53,11 @@ export class DefaultReadTreeResponseFactory implements ReadTreeResponseFactory {
       options.filter,
     );
   }
+
+  // async fromReadableArray(): Promise<ReadTreeResponse> {
+  //   return new ReadableArrayResponse(
+
+  //   );
+
+  // }
 }
