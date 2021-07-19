@@ -167,9 +167,22 @@ export type FromArchiveOptions = {
   filter?: (path: string) => boolean;
 };
 
+export type FromReadableArrayOptions = {
+  stream: Readable[];
+
+  subpath?: string;
+
+  etag: string;
+
+  // filter and subpath not relevant to us?
+};
+
 export interface ReadTreeResponseFactory {
   fromTarArchive(options: FromArchiveOptions): Promise<ReadTreeResponse>;
   fromZipArchive(options: FromArchiveOptions): Promise<ReadTreeResponse>;
+  fromReadableArray(
+    options: FromReadableArrayOptions,
+  ): Promise<ReadTreeResponse>;
 }
 
 /**

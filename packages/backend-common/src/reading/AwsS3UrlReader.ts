@@ -27,8 +27,7 @@ import {
   AwsS3IntegrationConfig,
   readAwsS3IntegrationConfig,
 } from '@backstage/integration';
-import { Readable, Stream } from 'stream';
-import Archiver from 'archiver';
+import { Readable } from 'stream';
 
 const AMAZON_AWS_HOST = '.amazonaws.com';
 
@@ -120,7 +119,7 @@ export class AwsS3UrlReader implements UrlReader {
       aws.config.update({ region: region });
 
       let moreKeys = true;
-      let allObjects: Readable[] = [];
+      let readables: Readable[] = [];
       let nextStartKey = '';
 
       while (moreKeys) {
@@ -159,10 +158,9 @@ export class AwsS3UrlReader implements UrlReader {
           moreKeys = false;
         }
 
-        allObjects = allObjects.concat(responses);
+        readables = readables.concat(responses);
       }
-
-      console.log(allObjects);
+      console.log(readables);
 
       // const archive = Archiver('zip', {
       //   zlib: { level: 0 },
@@ -180,13 +178,12 @@ export class AwsS3UrlReader implements UrlReader {
       // }
 
       // archive.finalize();
+      return await this.deps.treeResponseFactory.fromReadableArray({
+        stream: readables,
+        etag: '',
+      });
 
-      // return await this.deps.treeResponseFactory.fromZipArchive({
-      //   stream: (archive as unknown) as Readable,
-      //   etag: '',
-      // });
-
-      throw new Error('AwsS3Reader does not implement readTree');
+      // throw new Error('AwsS3Reader does not implement readTree');
     } catch (e) {
       throw new Error(`Could not retrieve file from S3: ${e.message}`);
     }

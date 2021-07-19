@@ -19,10 +19,12 @@ import { Config } from '@backstage/config';
 import {
   ReadTreeResponse,
   FromArchiveOptions,
+  FromReadableArrayOptions,
   ReadTreeResponseFactory,
 } from '../types';
 import { TarArchiveResponse } from './TarArchiveResponse';
 import { ZipArchiveResponse } from './ZipArchiveResponse';
+import { ReadableArrayResponse } from './ReadableArrayResponse';
 
 export class DefaultReadTreeResponseFactory implements ReadTreeResponseFactory {
   static create(options: { config: Config }): DefaultReadTreeResponseFactory {
@@ -54,10 +56,13 @@ export class DefaultReadTreeResponseFactory implements ReadTreeResponseFactory {
     );
   }
 
-  // async fromReadableArray(): Promise<ReadTreeResponse> {
-  //   return new ReadableArrayResponse(
-
-  //   );
-
-  // }
+  async fromReadableArray(
+    options: FromReadableArrayOptions,
+  ): Promise<ReadTreeResponse> {
+    return new ReadableArrayResponse(
+      options.stream,
+      options.subpath ?? '',
+      options.etag,
+    );
+  }
 }

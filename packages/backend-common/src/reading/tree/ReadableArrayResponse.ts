@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import getRawBody from 'raw-body';
 import { Readable } from 'stream';
 import {
   ReadTreeResponse,
@@ -25,14 +26,36 @@ import {
  * Wraps a array of Readable objects into a tree response reader.
  */
 export class ReadableArrayResponse implements ReadTreeResponse {
+  private read = false;
+
   constructor(
     private readonly stream: Readable[],
+    private readonly subPath: string,
     public readonly etag: string,
   ) {
     this.etag = etag;
   }
 
+  // Make sure the input stream is only read once
+  private onlyOnce() {
+    if (this.read) {
+      throw new Error('Response has already been read');
+    }
+    this.read = true;
+  }
+
+  /* private shouldBeIncluded(key: string): boolean {
+    if(key.) 
+    console.log(key);
+    return false; 
+  }*/
+
   files(): Promise<ReadTreeResponseFile[]> {
+    this.onlyOnce();
+
+    const files = Array<ReadTreeResponseFile>();
+
+    console.log('end');
     throw new Error('Method not implemented.');
   }
   archive(): Promise<NodeJS.ReadableStream> {
