@@ -22,9 +22,6 @@ import { isChildPath } from '@backstage/cli-common';
 import { JsonValue } from '@backstage/config';
 import { Knex } from 'knex';
 import { Logger as Logger_2 } from 'winston';
-import { JsonValue } from '@backstage/config';
-import { Knex } from 'knex';
-import { Logger } from 'winston';
 import { MergeResult } from 'isomorphic-git';
 import { PushResult } from 'isomorphic-git';
 import { Readable } from 'stream';
@@ -34,7 +31,6 @@ import { Router } from 'express';
 import { Server } from 'http';
 import * as winston from 'winston';
 import { Writable } from 'stream';
-import { RestEndpointMethodTypes } from '@octokit/rest';
 
 // Warning: (ae-missing-release-tag) "AzureUrlReader" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -67,21 +63,6 @@ export class AzureUrlReader implements UrlReader {
   search(url: string, options?: SearchOptions): Promise<SearchResponse>;
   // (undocumented)
   toString(): string;
-export class AzureIntegration implements ScmIntegration {
-    constructor(integrationConfig: AzureIntegrationConfig);
-    constructor(integration: AzureIntegration, deps: {
-        treeResponseFactory: ReadTreeResponseFactory;
-    });
-    // (undocumented)
-    static factory: ReaderFactory;
-    // (undocumented)
-    read(url: string): Promise<Buffer>;
-    // (undocumented)
-    readTree(url: string, options?: ReadTreeOptions): Promise<ReadTreeResponse>;
-    // (undocumented)
-    search(url: string, options?: SearchOptions): Promise<SearchResponse>;
-    // (undocumented)
-    toString(): string;
 }
 
 // Warning: (ae-missing-release-tag) "BitbucketUrlReader" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -106,29 +87,6 @@ export class BitbucketUrlReader implements UrlReader {
   search(url: string, options?: SearchOptions): Promise<SearchResponse>;
   // (undocumented)
   toString(): string;
-export type AzureIntegrationConfig = {
-    host: string;
-    token?: string;
-};
-
-// @public (undocumented)
-export class BitbucketIntegration implements ScmIntegration {
-    constructor(integrationConfig: BitbucketIntegrationConfig);
-    // (undocumented)
-    get config(): BitbucketIntegrationConfig;
-    constructor(integration: BitbucketIntegration, deps: {
-        treeResponseFactory: ReadTreeResponseFactory;
-    });
-    // (undocumented)
-    static factory: ReaderFactory;
-    // (undocumented)
-    read(url: string): Promise<Buffer>;
-    // (undocumented)
-    readTree(url: string, options?: ReadTreeOptions): Promise<ReadTreeResponse>;
-    // (undocumented)
-    search(url: string, options?: SearchOptions): Promise<SearchResponse>;
-    // (undocumented)
-    toString(): string;
 }
 
 // Warning: (ae-missing-release-tag) "CacheClient" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -139,17 +97,6 @@ export interface CacheClient {
   get(key: string): Promise<JsonValue | undefined>;
   // Warning: (ae-forgotten-export) The symbol "CacheSetOptions" needs to be exported by the entry point index.d.ts
   set(key: string, value: JsonValue, options?: CacheSetOptions): Promise<void>;
-}
-export type BitbucketIntegrationConfig = {
-    host: string;
-    apiBaseUrl?: string;
-    token?: string;
-    username?: string;
-    appPassword?: string;
-};
-    delete(key: string): Promise<void>;
-    get(key: string): Promise<JsonValue | undefined>;
-    set(key: string, value: JsonValue, options?: CacheSetOptions): Promise<void>;
 }
 
 // Warning: (ae-missing-release-tag) "CacheManager" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -183,17 +130,6 @@ export interface ContainerRunner {
 //
 // @public @deprecated
 export const createDatabase: typeof createDatabaseClient;
-export function defaultScmResolveUrl(options: {
-    url: string;
-    base: string;
-    lineNumber?: number;
-}): string;
-    forPlugin(pluginId: string): PluginCacheManager;
-    static fromConfig(config: Config, options?: CacheManagerOptions): CacheManager;
-    }
-
-// @public (undocumented)
-export const coloredFormat: winston.Logform.Format;
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -216,18 +152,8 @@ export function createRootLogger(
 // Warning: (ae-forgotten-export) The symbol "ServiceBuilderImpl" needs to be exported by the entry point index.d.ts
 // Warning: (ae-missing-release-tag) "createServiceBuilder" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
-export function getAzureDownloadUrl(url: string): string;
-// @public (undocumented)
-export interface ContainerRunner {
-    // (undocumented)
-    runContainer(opts: RunContainerOptions): Promise<void>;
-}
-
-// @public @deprecated
-export const createDatabase: typeof createDatabaseClient;
-
 // @public
-export function createDatabaseClient(dbConfig: Config, overrides?: Partial<Knex.Config>): Knex<any, unknown[]>;
+export function createServiceBuilder(_module: NodeModule): ServiceBuilderImpl;
 
 // Warning: (ae-forgotten-export) The symbol "StatusCheckRouterOptions" needs to be exported by the entry point index.d.ts
 // Warning: (ae-missing-release-tag) "createStatusCheckRouter" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -264,16 +190,6 @@ export class DockerContainerRunner implements ContainerRunner {
     pullImage,
   }: RunContainerOptions): Promise<void>;
 }
-// @public
-export function getBitbucketDefaultBranch(url: string, config: BitbucketIntegrationConfig): Promise<string>;
-// @public (undocumented)
-export function createRootLogger(options?: winston.LoggerOptions, env?: NodeJS.ProcessEnv): winston.Logger;
-
-// @public
-export function createServiceBuilder(_module: NodeModule): ServiceBuilderImpl;
-
-// @public (undocumented)
-export function createStatusCheckRouter(options: StatusCheckRouterOptions): Promise<express.Router>;
 
 // Warning: (ae-missing-release-tag) "ensureDatabaseExists" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -282,7 +198,6 @@ export function ensureDatabaseExists(
   dbConfig: Config,
   ...databases: Array<string>
 ): Promise<void>;
-export function getBitbucketRequestOptions(config: BitbucketIntegrationConfig): RequestInit;
 
 // Warning: (ae-missing-release-tag) "errorHandler" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -302,37 +217,6 @@ export type ErrorHandlerOptions = {
 
 // Warning: (ae-missing-release-tag) "getRootLogger" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
-// @public (undocumented)
-export function getRootLogger(): winston.Logger;
-export function getGitHubFileFetchUrl(url: string, config: GitHubIntegrationConfig): string;
-// @public (undocumented)
-export class DatabaseManager {
-    forPlugin(pluginId: string): PluginDatabaseManager;
-    static fromConfig(config: Config): DatabaseManager;
-    }
-
-// @public (undocumented)
-export class DockerContainerRunner implements ContainerRunner {
-    constructor({ dockerClient }: {
-        dockerClient: Docker;
-    });
-    // (undocumented)
-    runContainer({ imageName, command, args, logStream, mountDirs, workingDir, envVars, }: RunContainerOptions): Promise<void>;
-}
-
-// @public
-export function ensureDatabaseExists(dbConfig: Config, ...databases: Array<string>): Promise<void>;
-
-// @public
-export function errorHandler(options?: ErrorHandlerOptions): ErrorRequestHandler;
-
-// @public (undocumented)
-export type ErrorHandlerOptions = {
-    showStackTraces?: boolean;
-    logger?: Logger;
-    logClientErrors?: boolean;
-};
-
 // @public (undocumented)
 export function getRootLogger(): winston.Logger;
 
@@ -494,122 +378,6 @@ export class GitlabUrlReader implements UrlReader {
   search(url: string, options?: SearchOptions): Promise<SearchResponse>;
   // (undocumented)
   toString(): string;
-export class GithubAppCredentialsMux {
-    constructor(config: GitHubIntegrationConfig);
-    // (undocumented)
-    add({ dir, filepath, }: {
-        dir: string;
-        filepath: string;
-    }): Promise<void>;
-    // (undocumented)
-    addRemote({ dir, url, remote, }: {
-        dir: string;
-        remote: string;
-        url: string;
-    }): Promise<void>;
-    // (undocumented)
-    clone({ url, dir, ref, }: {
-        url: string;
-        dir: string;
-        ref?: string;
-    }): Promise<void>;
-    // (undocumented)
-    commit({ dir, message, author, committer, }: {
-        dir: string;
-        message: string;
-        author: {
-            name: string;
-            email: string;
-        };
-        committer: {
-            name: string;
-            email: string;
-        };
-    }): Promise<string>;
-    // (undocumented)
-    currentBranch({ dir, fullName, }: {
-        dir: string;
-        fullName?: boolean;
-    }): Promise<string | undefined>;
-    // (undocumented)
-    fetch({ dir, remote, }: {
-        dir: string;
-        remote?: string;
-    }): Promise<void>;
-    // (undocumented)
-    static fromAuth: ({ username, password, logger, }: {
-        username?: string | undefined;
-        password?: string | undefined;
-        logger?: Logger | undefined;
-    }) => Git;
-    // (undocumented)
-    init({ dir }: {
-        dir: string;
-    }): Promise<void>;
-    // (undocumented)
-    merge({ dir, theirs, ours, author, committer, }: {
-        dir: string;
-        theirs: string;
-        ours?: string;
-        author: {
-            name: string;
-            email: string;
-        };
-        committer: {
-            name: string;
-            email: string;
-        };
-    }): Promise<MergeResult>;
-    // (undocumented)
-    push({ dir, remote }: {
-        dir: string;
-        remote: string;
-    }): Promise<PushResult>;
-    // (undocumented)
-    readCommit({ dir, sha, }: {
-        dir: string;
-        sha: string;
-    }): Promise<ReadCommitResult>;
-    // (undocumented)
-    resolveRef({ dir, ref, }: {
-        dir: string;
-        ref: string;
-    }): Promise<string>;
-}
-
-// @public
-export class GithubUrlReader implements UrlReader {
-    constructor(integration: GitHubIntegration, deps: {
-        treeResponseFactory: ReadTreeResponseFactory;
-        credentialsProvider: GithubCredentialsProvider;
-    });
-    // (undocumented)
-    static factory: ReaderFactory;
-    // (undocumented)
-    read(url: string): Promise<Buffer>;
-    // (undocumented)
-    readTree(url: string, options?: ReadTreeOptions): Promise<ReadTreeResponse>;
-    // (undocumented)
-    search(url: string, options?: SearchOptions): Promise<SearchResponse>;
-    // (undocumented)
-    toString(): string;
-}
-
-// @public (undocumented)
-export class GitlabUrlReader implements UrlReader {
-    constructor(integration: GitLabIntegration, deps: {
-        treeResponseFactory: ReadTreeResponseFactory;
-    });
-    // (undocumented)
-    static factory: ReaderFactory;
-    // (undocumented)
-    read(url: string): Promise<Buffer>;
-    // (undocumented)
-    readTree(url: string, options?: ReadTreeOptions): Promise<ReadTreeResponse>;
-    // (undocumented)
-    search(url: string, options?: SearchOptions): Promise<SearchResponse>;
-    // (undocumented)
-    toString(): string;
 }
 
 export { isChildPath };
@@ -624,24 +392,13 @@ export function loadBackendConfig(options: Options): Promise<Config>;
 //
 // @public
 export function notFoundHandler(): RequestHandler;
-export type GitLabIntegrationConfig = {
-    host: string;
-    apiBaseUrl: string;
-    token?: string;
-    baseUrl: string;
-};
-export function loadBackendConfig(options: Options): Promise<Config>;
 
 // Warning: (ae-missing-release-tag) "PluginCacheManager" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
 export type PluginCacheManager = {
   getClient: (options?: ClientOptions) => CacheClient;
-export type GoogleGcsIntegrationConfig = {
-    clientEmail?: string;
-    privateKey?: string;
 };
-export function notFoundHandler(): RequestHandler;
 
 // Warning: (ae-missing-release-tag) "PluginDatabaseManager" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -649,10 +406,6 @@ export function notFoundHandler(): RequestHandler;
 export interface PluginDatabaseManager {
   getClient(): Promise<Knex>;
 }
-export function readAzureIntegrationConfig(config: Config): AzureIntegrationConfig;
-export type PluginCacheManager = {
-    getClient: (options?: ClientOptions) => CacheClient;
-};
 
 // Warning: (ae-missing-release-tag) "PluginEndpointDiscovery" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -671,10 +424,6 @@ export type ReadTreeResponse = {
   dir(options?: ReadTreeResponseDirOptions): Promise<string>;
   etag: string;
 };
-export function readAzureIntegrationConfigs(configs: Config[]): AzureIntegrationConfig[];
-export interface PluginDatabaseManager {
-    getClient(): Promise<Knex>;
-}
 
 // Warning: (ae-missing-release-tag) "ReadTreeResponseFile" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -683,26 +432,12 @@ export type ReadTreeResponseFile = {
   path: string;
   content(): Promise<Buffer>;
 };
-export function readBitbucketIntegrationConfig(config: Config): BitbucketIntegrationConfig;
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (ae-missing-release-tag) "requestLoggingHandler" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
 export function requestLoggingHandler(logger?: Logger_2): RequestHandler;
-export function readBitbucketIntegrationConfigs(configs: Config[]): BitbucketIntegrationConfig[];
-export type PluginEndpointDiscovery = {
-    getBaseUrl(pluginId: string): Promise<string>;
-    getExternalBaseUrl(pluginId: string): Promise<string>;
-};
-
-// @public (undocumented)
-export type ReadTreeResponse = {
-    files(): Promise<ReadTreeResponseFile[]>;
-    archive(): Promise<NodeJS.ReadableStream>;
-    dir(options?: ReadTreeResponseDirOptions): Promise<string>;
-    etag: string;
-};
 
 // Warning: (ae-missing-release-tag) "RequestLoggingHandlerFactory" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -736,11 +471,6 @@ export type RunContainerOptions = {
   envVars?: Record<string, string>;
   pullImage?: boolean;
 };
-export function readGitHubIntegrationConfig(config: Config): GitHubIntegrationConfig;
-export type ReadTreeResponseFile = {
-    path: string;
-    content(): Promise<Buffer>;
-};
 
 // Warning: (ae-missing-release-tag) "SearchResponse" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -749,8 +479,6 @@ export type SearchResponse = {
   files: SearchResponseFile[];
   etag: string;
 };
-export function readGitHubIntegrationConfigs(configs: Config[]): GitHubIntegrationConfig[];
-export function requestLoggingHandler(logger?: Logger): RequestHandler;
 
 // Warning: (ae-missing-release-tag) "SearchResponseFile" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -786,49 +514,6 @@ export function setRootLogger(newLogger: winston.Logger): void;
 //
 // @public @deprecated
 export const SingleConnectionDatabaseManager: typeof DatabaseManager;
-export function readGitLabIntegrationConfig(config: Config): GitLabIntegrationConfig;
-export function resolvePackagePath(name: string, ...paths: string[]): string;
-
-// @public (undocumented)
-export type RunContainerOptions = {
-    imageName: string;
-    command?: string | string[];
-    args: string[];
-    logStream?: Writable;
-    mountDirs?: Record<string, string>;
-    workingDir?: string;
-    envVars?: Record<string, string>;
-};
-
-// @public
-export type SearchResponse = {
-    files: SearchResponseFile[];
-    etag: string;
-};
-
-// @public
-export type SearchResponseFile = {
-    url: string;
-    content(): Promise<Buffer>;
-};
-
-// @public (undocumented)
-export type ServiceBuilder = {
-    loadConfig(config: ConfigReader): ServiceBuilder;
-    setPort(port: number): ServiceBuilder;
-    setHost(host: string): ServiceBuilder;
-    setLogger(logger: Logger): ServiceBuilder;
-    enableCors(options: cors.CorsOptions): ServiceBuilder;
-    setHttpsSettings(settings: HttpsSettings): ServiceBuilder;
-    addRouter(root: string, router: Router | RequestHandler): ServiceBuilder;
-    start(): Promise<Server>;
-};
-
-// @public (undocumented)
-export function setRootLogger(newLogger: winston.Logger): void;
-
-// @public @deprecated
-export const SingleConnectionDatabaseManager: typeof DatabaseManager;
 
 // Warning: (ae-missing-release-tag) "SingleHostDiscovery" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -858,60 +543,12 @@ export type StatusCheck = () => Promise<any>;
 export function statusCheckHandler(
   options?: StatusCheckHandlerOptions,
 ): Promise<RequestHandler>;
-export interface ScmIntegrationRegistry extends ScmIntegrationsGroup<ScmIntegration> {
-    // (undocumented)
-    azure: ScmIntegrationsGroup<AzureIntegration>;
-    // (undocumented)
-    bitbucket: ScmIntegrationsGroup<BitbucketIntegration>;
-export class SingleHostDiscovery implements PluginEndpointDiscovery {
-    static fromConfig(config: Config, options?: {
-        basePath?: string;
-    }): SingleHostDiscovery;
-    // (undocumented)
-    getBaseUrl(pluginId: string): Promise<string>;
-    // (undocumented)
-    getExternalBaseUrl(pluginId: string): Promise<string>;
-    }
 
 // Warning: (ae-missing-release-tag) "StatusCheckHandlerOptions" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
 export interface StatusCheckHandlerOptions {
   statusCheck?: StatusCheck;
-export class ScmIntegrations implements ScmIntegrationRegistry {
-    constructor(integrationsByType: IntegrationsByType);
-    // (undocumented)
-    get azure(): ScmIntegrationsGroup<AzureIntegration>;
-    // (undocumented)
-    get bitbucket(): ScmIntegrationsGroup<BitbucketIntegration>;
-    // (undocumented)
-    byHost(host: string): ScmIntegration | undefined;
-    // (undocumented)
-    byUrl(url: string | URL): ScmIntegration | undefined;
-    // (undocumented)
-    static fromConfig(config: Config): ScmIntegrations;
-    // (undocumented)
-    get github(): ScmIntegrationsGroup<GitHubIntegration>;
-    // (undocumented)
-    get gitlab(): ScmIntegrationsGroup<GitLabIntegration>;
-    // (undocumented)
-    list(): ScmIntegration[];
-    // (undocumented)
-    resolveEditUrl(url: string): string;
-    // (undocumented)
-    resolveUrl(options: {
-        url: string;
-        base: string;
-        lineNumber?: number;
-    }): string;
-export type StatusCheck = () => Promise<any>;
-
-// @public
-export function statusCheckHandler(options?: StatusCheckHandlerOptions): Promise<RequestHandler>;
-
-// @public (undocumented)
-export interface StatusCheckHandlerOptions {
-    statusCheck?: StatusCheck;
 }
 
 // Warning: (ae-missing-release-tag) "UrlReader" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -967,27 +604,6 @@ export function useHotMemoize<T>(_module: NodeModule, valueFactory: () => T): T;
 // src/service/types.d.ts:61:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/service/types.d.ts:62:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/service/types.d.ts:70:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-export interface ScmIntegrationsGroup<T extends ScmIntegration> {
-    byHost(host: string): T | undefined;
-    byUrl(url: string | URL): T | undefined;
-    list(): T[];
-    read(url: string): Promise<Buffer>;
-    readTree(url: string, options?: ReadTreeOptions): Promise<ReadTreeResponse>;
-    search(url: string, options?: SearchOptions): Promise<SearchResponse>;
-};
-
-// @public
-export class UrlReaders {
-    static create({ logger, config, factories }: CreateOptions): UrlReader;
-    static default({ logger, config, factories }: CreateOptions): UrlReader;
-}
-
-// @public
-export function useHotCleanup(_module: NodeModule, cancelEffect: () => void): void;
-
-// @public
-export function useHotMemoize<T>(_module: NodeModule, valueFactory: () => T): T;
-
 
 // (No @packageDocumentation comment for this package)
 ```

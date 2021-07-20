@@ -95,13 +95,13 @@ export const Button: React_2.ForwardRefExoticComponent<
   Pick<
     Props,
     | 'replace'
+    | 'disabled'
     | 'media'
     | 'hidden'
     | 'dir'
     | 'form'
     | 'slot'
     | 'title'
-    | 'disabled'
     | 'color'
     | 'size'
     | 'underline'
