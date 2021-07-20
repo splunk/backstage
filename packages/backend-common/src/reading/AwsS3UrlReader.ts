@@ -28,6 +28,7 @@ import {
   readAwsS3IntegrationConfig,
 } from '@backstage/integration';
 import { Readable } from 'stream';
+import { keysIn } from 'lodash';
 
 const AMAZON_AWS_HOST = '.amazonaws.com';
 
@@ -140,15 +141,17 @@ export class AwsS3UrlReader implements UrlReader {
           NextContinuationToken,
         } = await this.deps.s3.listObjectsV2(params).promise();
 
-        const responses = await Promise.all(
-          (Contents || []).map(({ Key }) =>
-            this.deps.s3
-              .getObject({
-                Bucket: bucket,
-                Key: String(Key),
-              })
-              .createReadStream(),
-          ),
+        const response = await Promise.all(
+          (Contents || []).map(({ Key }) => {
+            const test = this.deps.s3
+              .getObject({ Bucket: bucket, Key: String(Key) })
+              .createReadStream();
+            Object.defineProperty(test, 'path', {
+              value: String(Key),
+              writable: false,
+            });
+            return test;
+          }),
         );
 
         if (IsTruncated) {
@@ -157,27 +160,9 @@ export class AwsS3UrlReader implements UrlReader {
           nextStartKey = '';
           moreKeys = false;
         }
-
-        readables = readables.concat(responses);
+        readables = readables.concat(response);
       }
-      console.log(readables);
 
-      // const archive = Archiver('zip', {
-      //   zlib: { level: 0 },
-      // });
-      // const singleStream = new Stream.PassThrough();
-
-      // archive.pipe(singleStream);
-
-      // let key;
-      // for (let i = 0; i < responses.length; i++) {
-      //   if (Contents) {
-      //     key = Contents[i].Key;
-      //   }
-      //   archive.append(responses[i], { name: String(key) });
-      // }
-
-      // archive.finalize();
       return await this.deps.treeResponseFactory.fromReadableArray({
         stream: readables,
         etag: '',

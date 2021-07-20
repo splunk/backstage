@@ -50,14 +50,22 @@ export class ReadableArrayResponse implements ReadTreeResponse {
     return false; 
   }*/
 
-  files(): Promise<ReadTreeResponseFile[]> {
+  async files(): Promise<ReadTreeResponseFile[]> {
     this.onlyOnce();
 
     const files = Array<ReadTreeResponseFile>();
 
-    console.log('end');
-    throw new Error('Method not implemented.');
+    for (let i = 0; i < this.stream.length; i++) {
+      if (!(this.stream[i] as any).path.endsWith('/')) {
+        await files.push({
+          path: (this.stream[i] as any).path,
+          content: () => getRawBody(this.stream[i]),
+        });
+      }
+    }
+    return files;
   }
+
   archive(): Promise<NodeJS.ReadableStream> {
     throw new Error('Method not implemented.');
   }
