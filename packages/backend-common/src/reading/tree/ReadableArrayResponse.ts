@@ -16,11 +16,7 @@
 
 import getRawBody from 'raw-body';
 import { Readable } from 'stream';
-import {
-  ReadTreeResponse,
-  ReadTreeResponseDirOptions,
-  ReadTreeResponseFile,
-} from '../types';
+import { ReadTreeResponse, ReadTreeResponseFile } from '../types';
 
 /**
  * Wraps a array of Readable objects into a tree response reader.
@@ -63,7 +59,8 @@ export class ReadableArrayResponse implements ReadTreeResponse {
   archive(): Promise<NodeJS.ReadableStream> {
     throw new Error('Method not implemented.');
   }
-  dir(options?: ReadTreeResponseDirOptions): Promise<string> {
+
+  dir(): Promise<string> {
     throw new Error('Method not implemented.');
   }
 }
