@@ -30,7 +30,6 @@ export class ReadableArrayResponse implements ReadTreeResponse {
 
   constructor(
     private readonly stream: Readable[],
-    private readonly subPath: string,
     public readonly etag: string,
   ) {
     this.etag = etag;
@@ -44,12 +43,6 @@ export class ReadableArrayResponse implements ReadTreeResponse {
     this.read = true;
   }
 
-  /* private shouldBeIncluded(key: string): boolean {
-    if(key.) 
-    console.log(key);
-    return false; 
-  }*/
-
   async files(): Promise<ReadTreeResponseFile[]> {
     this.onlyOnce();
 
@@ -57,12 +50,13 @@ export class ReadableArrayResponse implements ReadTreeResponse {
 
     for (let i = 0; i < this.stream.length; i++) {
       if (!(this.stream[i] as any).path.endsWith('/')) {
-        await files.push({
+        files.push({
           path: (this.stream[i] as any).path,
           content: () => getRawBody(this.stream[i]),
         });
       }
     }
+
     return files;
   }
 

@@ -28,7 +28,6 @@ import {
   readAwsS3IntegrationConfig,
 } from '@backstage/integration';
 import { Readable } from 'stream';
-import { keysIn } from 'lodash';
 
 const AMAZON_AWS_HOST = '.amazonaws.com';
 
@@ -120,55 +119,55 @@ export class AwsS3UrlReader implements UrlReader {
       aws.config.update({ region: region });
 
       let moreKeys = true;
-      let readables: Readable[] = [];
-      let nextStartKey = '';
+      let awsS3Readables: Readable[] = [];
+      let continuationToken = '';
 
       while (moreKeys) {
         let params;
-        if (nextStartKey === '') {
-          params = { Bucket: bucket, Prefix: path };
+        if (continuationToken === '') {
+          params = {
+            Bucket: bucket,
+            Prefix: path,
+          };
         } else {
           params = {
             Bucket: bucket,
             Prefix: path,
-            ContinuationToken: nextStartKey,
+            ContinuationToken: continuationToken,
           };
         }
-
         const {
           Contents,
           IsTruncated,
           NextContinuationToken,
         } = await this.deps.s3.listObjectsV2(params).promise();
 
-        const response = await Promise.all(
+        const responses = await Promise.all(
           (Contents || []).map(({ Key }) => {
-            const test = this.deps.s3
+            const s3Response = this.deps.s3
               .getObject({ Bucket: bucket, Key: String(Key) })
               .createReadStream();
-            Object.defineProperty(test, 'path', {
+            Object.defineProperty(s3Response, 'path', {
               value: String(Key),
               writable: false,
             });
-            return test;
+            return s3Response;
           }),
         );
 
         if (IsTruncated) {
-          nextStartKey = String(NextContinuationToken);
+          continuationToken = String(NextContinuationToken);
         } else {
-          nextStartKey = '';
+          continuationToken = '';
           moreKeys = false;
         }
-        readables = readables.concat(response);
+        awsS3Readables = awsS3Readables.concat(responses);
       }
 
       return await this.deps.treeResponseFactory.fromReadableArray({
-        stream: readables,
+        stream: awsS3Readables,
         etag: '',
       });
-
-      // throw new Error('AwsS3Reader does not implement readTree');
     } catch (e) {
       throw new Error(`Could not retrieve file from S3: ${e.message}`);
     }

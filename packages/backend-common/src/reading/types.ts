@@ -168,13 +168,10 @@ export type FromArchiveOptions = {
 };
 
 export type FromReadableArrayOptions = {
+  // An array of readable streams
   stream: Readable[];
-
-  subpath?: string;
-
+  // etag of the file tree
   etag: string;
-
-  // filter and subpath not relevant to us?
 };
 
 export interface ReadTreeResponseFactory {
