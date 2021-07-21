@@ -14,5 +14,6 @@
  * limitations under the License.
  */
 
+export { AwsS3Integration } from './AwsS3Integration';
 export { readAwsS3IntegrationConfig } from './config';
 export type { AwsS3IntegrationConfig } from './config';

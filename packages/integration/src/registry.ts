@@ -29,7 +29,6 @@ export interface ScmIntegrationRegistry
   bitbucket: ScmIntegrationsGroup<BitbucketIntegration>;
   github: ScmIntegrationsGroup<GitHubIntegration>;
   gitlab: ScmIntegrationsGroup<GitLabIntegration>;
-
   /**
    * Resolves an absolute or relative URL in relation to a base URL.
    *

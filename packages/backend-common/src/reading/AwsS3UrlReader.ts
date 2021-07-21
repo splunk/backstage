@@ -26,6 +26,8 @@ import getRawBody from 'raw-body';
 import {
   AwsS3IntegrationConfig,
   readAwsS3IntegrationConfig,
+  AwsS3Integration,
+  ScmIntegrations,
 } from '@backstage/integration';
 import { Readable } from 'stream';
 
@@ -57,8 +59,16 @@ const parseURL = (
 };
 
 export class AwsS3UrlReader implements UrlReader {
-  static factory: ReaderFactory = ({ config, logger, treeResponseFactory }) => {
-    if (!config.has('integrations.awsS3')) {
+  static factory: ReaderFactory = ({ config, treeResponseFactory }) => {
+    const integrations = ScmIntegrations.fromConfig(config);
+
+    return integrations.awsS3.list().map(integration => {
+      const reader = new AwsS3UrlReader(integration, { treeResponseFactory });
+      const predicate = (url: URL) => url.host === integration.config.host;
+      return { reader, predicate };
+    });
+
+    /* if (!config.has('integrations.awsS3')) {
       return [];
     }
     const awsS3Config = readAwsS3IntegrationConfig(
@@ -85,11 +95,11 @@ export class AwsS3UrlReader implements UrlReader {
       s3,
     });
     const predicate = (url: URL) => url.host.endsWith(AMAZON_AWS_HOST);
-    return [{ reader, predicate }];
+    return [{ reader, predicate }];*/
   };
 
   constructor(
-    private readonly integration: AwsS3IntegrationConfig,
+    private readonly integration: AwsS3Integration,
     private readonly deps: {
       treeResponseFactory: ReadTreeResponseFactory;
       s3: S3;

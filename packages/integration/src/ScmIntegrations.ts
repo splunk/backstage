@@ -22,12 +22,14 @@ import { GitLabIntegration } from './gitlab/GitLabIntegration';
 import { defaultScmResolveUrl } from './helpers';
 import { ScmIntegration, ScmIntegrationsGroup } from './types';
 import { ScmIntegrationRegistry } from './registry';
+import { AwsS3Integration } from './awsS3/AwsS3Integration';
 
 type IntegrationsByType = {
   azure: ScmIntegrationsGroup<AzureIntegration>;
   bitbucket: ScmIntegrationsGroup<BitbucketIntegration>;
   github: ScmIntegrationsGroup<GitHubIntegration>;
   gitlab: ScmIntegrationsGroup<GitLabIntegration>;
+  awsS3: ScmIntegrationsGroup<AwsS3Integration>;
 };
 
 export class ScmIntegrations implements ScmIntegrationRegistry {
@@ -39,6 +41,7 @@ export class ScmIntegrations implements ScmIntegrationRegistry {
       bitbucket: BitbucketIntegration.factory({ config }),
       github: GitHubIntegration.factory({ config }),
       gitlab: GitLabIntegration.factory({ config }),
+      awsS3: AwsS3Integration.factory({ config }),
     });
   }
 
@@ -60,6 +63,10 @@ export class ScmIntegrations implements ScmIntegrationRegistry {
 
   get gitlab(): ScmIntegrationsGroup<GitLabIntegration> {
     return this.byType.gitlab;
+  }
+
+  get awsS3(): ScmIntegrationsGroup<AwsS3Integration> {
+    return this.byType.awsS3;
   }
 
   list(): ScmIntegration[] {
