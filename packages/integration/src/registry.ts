@@ -19,6 +19,7 @@ import { AzureIntegration } from './azure/AzureIntegration';
 import { BitbucketIntegration } from './bitbucket/BitbucketIntegration';
 import { GitHubIntegration } from './github/GitHubIntegration';
 import { GitLabIntegration } from './gitlab/GitLabIntegration';
+import { AwsS3Integration } from './awsS3';
 
 /**
  * Holds all registered SCM integrations, of all types.
@@ -29,6 +30,8 @@ export interface ScmIntegrationRegistry
   bitbucket: ScmIntegrationsGroup<BitbucketIntegration>;
   github: ScmIntegrationsGroup<GitHubIntegration>;
   gitlab: ScmIntegrationsGroup<GitLabIntegration>;
+  awsS3: ScmIntegrationsGroup<AwsS3Integration>;
+
   /**
    * Resolves an absolute or relative URL in relation to a base URL.
    *

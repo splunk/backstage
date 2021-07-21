@@ -255,8 +255,6 @@ catalog:
     # Backstage example groups and users
     - type: file
       target: ../catalog-model/examples/acme-corp.yaml
-    - type: url
-      target: https://kjost-test.s3.us-east-2.amazonaws.com/folder2
 
 scaffolder:
   # Use to customize default commit author info used when new components are created

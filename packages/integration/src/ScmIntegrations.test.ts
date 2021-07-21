@@ -22,6 +22,9 @@ import { GitHubIntegrationConfig } from './github';
 import { GitHubIntegration } from './github/GitHubIntegration';
 import { GitLabIntegrationConfig } from './gitlab';
 import { GitLabIntegration } from './gitlab/GitLabIntegration';
+import { AwsS3IntegrationConfig } from './awsS3';
+import { AwsS3Integration } from './awsS3/AwsS3Integration';
+
 import { basicIntegrations } from './helpers';
 import { ScmIntegrations } from './ScmIntegrations';
 
@@ -42,11 +45,16 @@ describe('ScmIntegrations', () => {
     host: 'gitlab.local',
   } as GitLabIntegrationConfig);
 
+  const awsS3 = new AwsS3Integration({
+    host: 'awsS3.local',
+  } as AwsS3IntegrationConfig);
+
   const i = new ScmIntegrations({
     azure: basicIntegrations([azure], item => item.config.host),
     bitbucket: basicIntegrations([bitbucket], item => item.config.host),
     github: basicIntegrations([github], item => item.config.host),
     gitlab: basicIntegrations([gitlab], item => item.config.host),
+    awsS3: basicIntegrations([awsS3], item => item.config.host),
   });
 
   it('can get the specifics', () => {
@@ -54,11 +62,12 @@ describe('ScmIntegrations', () => {
     expect(i.bitbucket.byUrl('https://bitbucket.local')).toBe(bitbucket);
     expect(i.github.byUrl('https://github.local')).toBe(github);
     expect(i.gitlab.byUrl('https://gitlab.local')).toBe(gitlab);
+    expect(i.awsS3.byUrl('https://awsS3.local')).toBe(awsS3);
   });
 
   it('can list', () => {
     expect(i.list()).toEqual(
-      expect.arrayContaining([azure, bitbucket, github, gitlab]),
+      expect.arrayContaining([azure, bitbucket, github, gitlab, awsS3]),
     );
   });
 
@@ -67,11 +76,13 @@ describe('ScmIntegrations', () => {
     expect(i.byUrl('https://bitbucket.local')).toBe(bitbucket);
     expect(i.byUrl('https://github.local')).toBe(github);
     expect(i.byUrl('https://gitlab.local')).toBe(gitlab);
+    expect(i.byUrl('https://awsS3.local')).toBe(awsS3);
 
     expect(i.byHost('azure.local')).toBe(azure);
     expect(i.byHost('bitbucket.local')).toBe(bitbucket);
     expect(i.byHost('github.local')).toBe(github);
     expect(i.byHost('gitlab.local')).toBe(gitlab);
+    expect(i.byHost('awsS3.local')).toBe(awsS3);
   });
 
   it('can resolveUrl using fallback', () => {

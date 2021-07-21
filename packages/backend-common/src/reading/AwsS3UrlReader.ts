@@ -23,12 +23,7 @@ import {
   ReadTreeResponseFactory,
 } from './types';
 import getRawBody from 'raw-body';
-import {
-  AwsS3IntegrationConfig,
-  readAwsS3IntegrationConfig,
-  AwsS3Integration,
-  ScmIntegrations,
-} from '@backstage/integration';
+import { AwsS3Integration, ScmIntegrations } from '@backstage/integration';
 import { Readable } from 'stream';
 
 const AMAZON_AWS_HOST = '.amazonaws.com';
@@ -59,43 +54,37 @@ const parseURL = (
 };
 
 export class AwsS3UrlReader implements UrlReader {
-  static factory: ReaderFactory = ({ config, treeResponseFactory }) => {
+  static factory: ReaderFactory = ({ config, logger, treeResponseFactory }) => {
     const integrations = ScmIntegrations.fromConfig(config);
 
     return integrations.awsS3.list().map(integration => {
-      const reader = new AwsS3UrlReader(integration, { treeResponseFactory });
-      const predicate = (url: URL) => url.host === integration.config.host;
+      let s3: S3;
+      if (
+        !integration.config.accessKeyId ||
+        !integration.config.secretAccessKey
+      ) {
+        logger.info(
+          'awsS3 credentials not found in config. Using default credentials provider.',
+        );
+        s3 = new S3({});
+      } else {
+        const creds = new Credentials({
+          accessKeyId: integration.config.accessKeyId,
+          secretAccessKey: integration.config.secretAccessKey,
+        });
+        s3 = new S3({
+          apiVersion: '2006-03-01',
+          credentials: creds,
+        });
+      }
+      const reader = new AwsS3UrlReader(integration, {
+        treeResponseFactory,
+        s3,
+      });
+      const predicate = (url: URL) =>
+        url.host.endsWith(integration.config.host);
       return { reader, predicate };
     });
-
-    /* if (!config.has('integrations.awsS3')) {
-      return [];
-    }
-    const awsS3Config = readAwsS3IntegrationConfig(
-      config.getConfig('integrations.awsS3'),
-    );
-    let s3: S3;
-    if (!awsS3Config.accessKeyId || !awsS3Config.secretAccessKey) {
-      logger.info(
-        'awsS3 credentials not found in config. Using default credentials provider.',
-      );
-      s3 = new S3({});
-    } else {
-      const creds = new Credentials({
-        accessKeyId: awsS3Config.accessKeyId,
-        secretAccessKey: awsS3Config.secretAccessKey,
-      });
-      s3 = new S3({
-        apiVersion: '2006-03-01',
-        credentials: creds,
-      });
-    }
-    const reader = new AwsS3UrlReader(awsS3Config, {
-      treeResponseFactory,
-      s3,
-    });
-    const predicate = (url: URL) => url.host.endsWith(AMAZON_AWS_HOST);
-    return [{ reader, predicate }];*/
   };
 
   constructor(
@@ -188,7 +177,7 @@ export class AwsS3UrlReader implements UrlReader {
   }
 
   toString() {
-    const secretAccessKey = this.integration.secretAccessKey;
+    const secretAccessKey = this.integration.config.secretAccessKey;
     return `awsS3{host=${AMAZON_AWS_HOST},authed=${Boolean(secretAccessKey)}}`;
   }
 }
