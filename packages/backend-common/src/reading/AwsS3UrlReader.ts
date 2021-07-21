@@ -169,7 +169,7 @@ export class AwsS3UrlReader implements UrlReader {
         etag: '',
       });
     } catch (e) {
-      throw new Error(`Could not retrieve file from S3: ${e.message}`);
+      throw new Error(`Could not retrieve file tree from S3: ${e.message}`);
     }
   }
 
