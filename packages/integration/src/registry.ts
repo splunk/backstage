@@ -19,7 +19,7 @@ import { AzureIntegration } from './azure/AzureIntegration';
 import { BitbucketIntegration } from './bitbucket/BitbucketIntegration';
 import { GitHubIntegration } from './github/GitHubIntegration';
 import { GitLabIntegration } from './gitlab/GitLabIntegration';
-import { AwsS3Integration } from './awsS3';
+import { AwsS3Integration } from './awsS3/AwsS3Integration';
 
 /**
  * Holds all registered SCM integrations, of all types.
