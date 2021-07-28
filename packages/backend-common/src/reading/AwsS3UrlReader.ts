@@ -18,6 +18,7 @@ import aws, { Credentials, S3 } from 'aws-sdk';
 import {
   ReaderFactory,
   ReadTreeResponse,
+  ReadTreeResponseFactory,
   ReadUrlOptions,
   ReadUrlResponse,
   SearchResponse,
@@ -25,6 +26,7 @@ import {
 } from './types';
 import getRawBody from 'raw-body';
 import { AwsS3Integration, ScmIntegrations } from '@backstage/integration';
+import { Readable } from 'stream';
 
 const parseURL = (
   url: string,
@@ -60,7 +62,7 @@ const parseURL = (
 };
 
 export class AwsS3UrlReader implements UrlReader {
-  static factory: ReaderFactory = ({ config, logger }) => {
+  static factory: ReaderFactory = ({ config, logger, treeResponseFactory }) => {
     const integrations = ScmIntegrations.fromConfig(config);
 
     return integrations.awsS3.list().map(integration => {
@@ -83,7 +85,10 @@ export class AwsS3UrlReader implements UrlReader {
           credentials: creds,
         });
       }
-      const reader = new AwsS3UrlReader(integration, s3);
+      const reader = new AwsS3UrlReader(integration, {
+        treeResponseFactory,
+        s3,
+      });
       const predicate = (url: URL) =>
         url.host.endsWith(integration.config.host);
       return { reader, predicate };
@@ -92,7 +97,10 @@ export class AwsS3UrlReader implements UrlReader {
 
   constructor(
     private readonly integration: AwsS3Integration,
-    private readonly s3: S3,
+    private readonly deps: {
+      treeResponseFactory: ReadTreeResponseFactory;
+      s3: S3;
+    },
   ) {}
 
   async read(url: string): Promise<Buffer> {
@@ -122,7 +130,7 @@ export class AwsS3UrlReader implements UrlReader {
         };
       }
 
-      const response = this.s3.getObject(params);
+      const response = this.deps.s3.getObject(params);
       const buffer = await getRawBody(response.createReadStream());
       const etag = (await response.promise()).ETag;
 
@@ -135,8 +143,64 @@ export class AwsS3UrlReader implements UrlReader {
     }
   }
 
-  async readTree(): Promise<ReadTreeResponse> {
-    throw new Error('AwsS3Reader does not implement readTree');
+  async readTree(url: string): Promise<ReadTreeResponse> {
+    try {
+      const { path, bucket, region } = parseURL(url);
+      aws.config.update({ region: region });
+
+      let moreKeys = true;
+      let awsS3Readables: Readable[] = [];
+      let continuationToken = '';
+
+      while (moreKeys) {
+        let params;
+        if (continuationToken === '') {
+          params = {
+            Bucket: bucket,
+            Prefix: path,
+          };
+        } else {
+          params = {
+            Bucket: bucket,
+            Prefix: path,
+            ContinuationToken: continuationToken,
+          };
+        }
+        const {
+          Contents,
+          IsTruncated,
+          NextContinuationToken,
+        } = await this.deps.s3.listObjectsV2(params).promise();
+
+        const responses = await Promise.all(
+          (Contents || []).map(({ Key }) => {
+            const s3Response = this.deps.s3
+              .getObject({ Bucket: bucket, Key: String(Key) })
+              .createReadStream();
+            Object.defineProperty(s3Response, 'path', {
+              value: String(Key),
+              writable: false,
+            });
+            return s3Response;
+          }),
+        );
+
+        if (IsTruncated) {
+          continuationToken = String(NextContinuationToken);
+        } else {
+          continuationToken = '';
+          moreKeys = false;
+        }
+        awsS3Readables = awsS3Readables.concat(responses);
+      }
+
+      return await this.deps.treeResponseFactory.fromReadableArray({
+        stream: awsS3Readables,
+        etag: '',
+      });
+    } catch (e) {
+      throw new Error(`Could not retrieve file tree from S3: ${e.message}`);
+    }
   }
 
   async search(): Promise<SearchResponse> {
