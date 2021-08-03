@@ -1,0 +1,17 @@
+{
+  "IsTruncated": "false",
+  "Contents": [
+    {
+      "Key": "awsS3-mock-object.yaml",
+      "LastModified": "2021-07-28T20:55:50.000Z",
+      "ETag": "50647b469242083c7948c8d22c97f142",
+      "Size": 2461,
+      "StorageClass": "STANDARD"
+    }
+  ],
+  "Name": "awsS3-mock-bucket",
+  "Prefix": "",
+  "MaxKeys": 1000,
+  "CommonPrefixes": [],
+  "KeyCount": 1
+}
