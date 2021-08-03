@@ -206,33 +206,41 @@ describe('AwsS3UrlReader', () => {
           `Could not retrieve file from S3: not a valid AWS S3 URL: https://test-bucket.s3.us-east-2.NOTamazonaws.com/file.yaml`,
         ),
       );
+
+      afterEach(() => {
+        AWSMock.restore();
+      });
     });
   });
   describe('readTree', () => {
     const treeResponseFactory = DefaultReadTreeResponseFactory.create({
       config: new ConfigReader({}),
     });
+
+    const object: aws.S3.Types.Object = {
+      Key: 'awsS3-mock-object.yaml',
+    };
+    const objectList: aws.S3.ObjectList = [object];
+    const output: aws.S3.Types.ListObjectsV2Output = {
+      Contents: objectList,
+    };
     AWSMock.setSDKInstance(aws);
+    AWSMock.mock('S3', 'listObjectsV2', output);
+
     AWSMock.mock(
       'S3',
-      'listObjectsV2',
+      'getObject',
       Buffer.from(
         require('fs').readFileSync(
           path.resolve(
             'src',
             'reading',
             '__fixtures__',
-            'awsS3-mock-bucket.json',
+            'awsS3-mock-object.yaml',
           ),
         ),
       ),
     );
-
-    /* AWSMock.mock(
-      'S3', 'getObject', Buffer.from(
-        require('fs').readFileSync(path.resolve('src', 'reading', '__fixtures__', 'awsS3-mock-object.yaml'))
-      )
-    );*/
 
     const s3 = new aws.S3();
     const awsS3UrlReader = new AwsS3UrlReader(
@@ -249,9 +257,16 @@ describe('AwsS3UrlReader', () => {
     );
     it('returns contents of an object in a bucket', async () => {
       const response = await awsS3UrlReader.readTree(
-        'https://awsS3-mock-bucket.s3.us-east-2.amazonaws.com',
+        'https://test.s3.us-east-2.amazonaws.com',
       );
-      console.log(response);
+      const files = await response.files();
+      const body = await files[0].content();
+
+      expect(body.toString()).toBe('site_name: Test\n');
+    });
+
+    afterEach(() => {
+      AWSMock.restore();
     });
   });
 });
