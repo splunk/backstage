@@ -36,12 +36,23 @@ describe('AwsS3UrlReader', () => {
       }),
     });
   };
+
+  const treeResponseFactory = DefaultReadTreeResponseFactory.create({
+    config: new ConfigReader({}),
+  });
+
+  afterEach(() => {
+    AWSMock.restore();
+  });
+
   it('creates a dummy reader without the awsS3 field', () => {
     const entries = createReader({
       integrations: {},
     });
+
     expect(entries).toHaveLength(1);
   });
+
   it('creates a reader with credentials correctly configured', () => {
     const awsS3Integrations = [];
     awsS3Integrations.push({
@@ -49,25 +60,31 @@ describe('AwsS3UrlReader', () => {
       accessKeyId: 'fakekey',
       secretAccessKey: 'fakekey',
     });
+
     const entries = createReader({
       integrations: {
         awsS3: awsS3Integrations,
       },
     });
+
     expect(entries).toHaveLength(2);
   });
+
   it('creates a reader with default credentials provider', () => {
     const awsS3Integrations = [];
     awsS3Integrations.push({
       host: 'amazonaws.com',
     });
+
     const entries = createReader({
       integrations: {
         awsS3: awsS3Integrations,
       },
     });
+
     expect(entries).toHaveLength(2);
   });
+
   describe('predicates', () => {
     const readers = createReader({
       integrations: {
@@ -75,11 +92,13 @@ describe('AwsS3UrlReader', () => {
       },
     });
     const predicate = readers[0].predicate;
+
     it('returns true for the correct aws s3 storage host', () => {
       expect(
         predicate(new URL('https://test-bucket.s3.us-east-2.amazonaws.com')),
       ).toBe(true);
     });
+
     it('returns true for a url with the full path and the correct host', () => {
       expect(
         predicate(
@@ -89,14 +108,17 @@ describe('AwsS3UrlReader', () => {
         ),
       ).toBe(true);
     });
+
     it('returns false for an incorrect host', () => {
       expect(predicate(new URL('https://amazon.com'))).toBe(false);
     });
+
     it('returns false for a completely different host', () => {
       expect(predicate(new URL('https://storage.cloud.google.com'))).toBe(
         false,
       );
     });
+
     it("returns true for a url with a bucket with '.'", () => {
       expect(
         predicate(
@@ -107,10 +129,8 @@ describe('AwsS3UrlReader', () => {
       ).toBe(true);
     });
   });
+
   describe('read', () => {
-    const treeResponseFactory = DefaultReadTreeResponseFactory.create({
-      config: new ConfigReader({}),
-    });
     AWSMock.setSDKInstance(aws);
     AWSMock.mock(
       'S3',
@@ -139,12 +159,14 @@ describe('AwsS3UrlReader', () => {
       ),
       { treeResponseFactory, s3 },
     );
+
     it('returns contents of an object in a bucket', async () => {
       const response = await awsS3UrlReader.read(
         'https://test-bucket.s3.us-east-2.amazonaws.com/awsS3-mock-object.yaml',
       );
       expect(response.toString()).toBe('site_name: Test\n');
     });
+
     it('rejects unknown targets', async () => {
       await expect(
         awsS3UrlReader.read(
@@ -157,11 +179,10 @@ describe('AwsS3UrlReader', () => {
       );
     });
   });
+
   describe('readUrl', () => {
-    const treeResponseFactory = DefaultReadTreeResponseFactory.create({
-      config: new ConfigReader({}),
-    });
     AWSMock.setSDKInstance(aws);
+
     AWSMock.mock(
       'S3',
       'getObject',
@@ -176,7 +197,9 @@ describe('AwsS3UrlReader', () => {
         ),
       ),
     );
+
     const s3 = new aws.S3();
+
     const awsS3UrlReader = new AwsS3UrlReader(
       new AwsS3Integration(
         readAwsS3IntegrationConfig(
@@ -189,6 +212,7 @@ describe('AwsS3UrlReader', () => {
       ),
       { treeResponseFactory, s3 },
     );
+
     it('returns contents of an object in a bucket', async () => {
       const response = await awsS3UrlReader.readUrl(
         'https://test-bucket.s3.us-east-2.amazonaws.com/awsS3-mock-object.yaml',
@@ -196,6 +220,7 @@ describe('AwsS3UrlReader', () => {
       const buffer = await response.buffer();
       expect(buffer.toString()).toBe('site_name: Test\n');
     });
+
     it('rejects unknown targets', async () => {
       await expect(
         awsS3UrlReader.readUrl(
@@ -206,17 +231,10 @@ describe('AwsS3UrlReader', () => {
           `Could not retrieve file from S3: not a valid AWS S3 URL: https://test-bucket.s3.us-east-2.NOTamazonaws.com/file.yaml`,
         ),
       );
-
-      afterEach(() => {
-        AWSMock.restore();
-      });
     });
   });
-  describe('readTree', () => {
-    const treeResponseFactory = DefaultReadTreeResponseFactory.create({
-      config: new ConfigReader({}),
-    });
 
+  describe('readTree', () => {
     const object: aws.S3.Types.Object = {
       Key: 'awsS3-mock-object.yaml',
     };
@@ -263,10 +281,6 @@ describe('AwsS3UrlReader', () => {
       const body = await files[0].content();
 
       expect(body.toString()).toBe('site_name: Test\n');
-    });
-
-    afterEach(() => {
-      AWSMock.restore();
     });
   });
 });
