@@ -16,7 +16,6 @@
 
 import { UrlReader } from '@backstage/backend-common';
 import { LocationSpec } from '@backstage/catalog-model';
-import limiterFactory from 'p-limit';
 import * as result from './results';
 import {
   CatalogProcessor,
